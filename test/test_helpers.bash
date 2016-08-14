@@ -24,7 +24,7 @@ load ${DIR}/lib/docker_helpers.bash
 
 # run the SUT docker container 
 # and makes sure it remains started
-# and displays the nginx-proxy start logs
+# and displays the nginx-proxy-alpine-letsencrypt start logs
 #
 # $1 container name
 # $@ other options for the `docker run` command
@@ -41,7 +41,7 @@ function nginxproxy {
 }
 
 
-# wait until the nginx-proxy container is ready to operate
+# wait until the nginx-proxy-alpine-letsencrypt container is ready to operate
 #
 # $1 container name
 function wait_for_nginxproxy_container_to_start {
