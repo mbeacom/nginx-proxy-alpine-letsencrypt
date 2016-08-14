@@ -11,7 +11,6 @@ ENV DOCKER_GEN_VERSION 0.7.3
 ENV FOREGO_VERSION v0.16.1
 ENV DOCKER_HOST unix:///tmp/docker.sock
 ## letsencrypt.sh
-ENV ACME_VERSION 2.3.0
 ENV OPENSSL_VERSION 1.0.2h-r1
 ## ct-submit
 ENV CT_SUBMIT_VERSION 1.1.2
@@ -224,7 +223,7 @@ EXPOSE 80 443
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY docker-entrypoint.sh /app/
-COPY letsencrypt_service letsencrypt_service_data.tmpl nginx.tmpl Procfile update_certs update_nginx /app/
+COPY letsencrypt/letsencrypt_service letsencrypt/letsencrypt_service_data.tmpl letsencrypt/update_certs letsencrypt/update_nginx nginx/nginx.tmpl nginx/Procfile /app/
 
 WORKDIR /app/
 
