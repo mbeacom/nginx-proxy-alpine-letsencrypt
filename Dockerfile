@@ -216,7 +216,9 @@ RUN apk add --no-cache \
 		coreutils \
 	&& curl -L https://raw.githubusercontent.com/lukas2511/letsencrypt.sh/master/letsencrypt.sh \
 			-o /usr/local/bin/letsencrypt.sh \
-	&& chmod +x /usr/local/bin/letsencrypt.sh
+	&& chmod +x /usr/local/bin/letsencrypt.sh \
+	&& mkdir -p /etc/nginx/vhost.d \
+	&& touch /etc/nginx/vhost.d/healthcheck.conf
 
 
 EXPOSE 80 443
