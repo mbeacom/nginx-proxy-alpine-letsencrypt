@@ -3,59 +3,136 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 seconds_to_wait=3600
-acme_ca_uri="${ACME_CA_URI:-https://acme-v01.api.letsencrypt.org/directory}"
 
 update_certs() {
-    [[ ! -f "$DIR"/letsencrypt_service_data ]] && return
+  [[ ! -f "$DIR"/letsencrypt_service_data ]] && return
 
-    # Load relevant container settings
-    source "$DIR"/letsencrypt_service_data
+  # Load relevant container settings
+  source "$DIR"/letsencrypt_service_data
 
-    reload_nginx='false'
-    for cid in "${LETSENCRYPT_CONTAINERS[@]}"; do
-        # Derive host and email variable names
-        host_varname="LETSENCRYPT_${cid}_HOST"
-        # Array variable indirection hack: http://stackoverflow.com/a/25880676/350221
-        hosts_array=$host_varname[@]
-        email_varname="LETSENCRYPT_${cid}_EMAIL"
+  reload_nginx='false'
+  for cid in "${LETSENCRYPT_CONTAINERS[@]}"; do
+    # Derive host and email variable names
+    host_varname="LETSENCRYPT_${cid}_HOST"
+    # Array variable indirection hack: http://stackoverflow.com/a/25880676/350221
+    hosts_array=$host_varname[@]
+    email_varname="LETSENCRYPT_${cid}_EMAIL"
 
-        params_d_str=""
-        hosts_array_expanded=("${!hosts_array}")
-        # First domain will be our base domain
-        base_domain="${hosts_array_expanded[0]}"
+    params_d_str=""
+    hosts_array_expanded=("${!hosts_array}")
+    # First domain will be our base domain
+    base_domain="${hosts_array_expanded[0]}"
 
-        # Create directorty for the first domain
-        mkdir -p /etc/nginx/certs/$base_domain
-        cd /etc/nginx/certs/$base_domain
+    # Create directorty for the first domain
+    mkdir -p /etc/nginx/certs/$base_domain
+    mkdir -p /usr/share/nginx/html/.well-known/acme-challenge
+    cd /etc/nginx/certs/
 
-        for domain in "${!hosts_array}"; do
-            # Add all the domains to certificate
-            params_d_str+=" -d $domain"
-        done
-        echo "Creating/renewal $base_domain certificates... (${hosts_array_expanded[*]})"
-        /usr/local/bin/simp_le \
-             -f account_key.json -f key.pem -f fullchain.pem \
-             $params_d_str \
-             --email "${!email_varname}" \
-             --server=$acme_ca_uri \
-             --default_root /usr/share/nginx/html/
-
-        simp_le_return=$?
-
-        if [[ $simp_le_return -eq 0 ]]; then
-            for domain in "${!hosts_array}"; do
-                # Symlink all alternative names to base domain certificate
-                ln -sf ./$base_domain/fullchain.pem /etc/nginx/certs/$domain".crt"
-                ln -sf ./$base_domain/key.pem       /etc/nginx/certs/$domain".key"
-            done
-            reload_nginx='true'
-        fi
-    done
-    unset LETSENCRYPT_CONTAINERS
-    if [[ "$reload_nginx" == 'true' ]]; then
-        /usr/local/bin/docker-gen -only-exposed /app/nginx.tmpl /etc/nginx/conf.d/default.conf
-        nginx -s reload
+    if [ "$STAGING" = "yes" ];then
+      echo "Let's Encrypt Staging : Enabled"
+      echo "CA=\"https://acme-staging.api.letsencrypt.org/directory\""		>  ./$base_domain/config
+      echo "WELLKNOWN=\"/usr/share/nginx/html/.well-known/acme-challenge\""	>> ./$base_domain/config
+      echo CONTACT_EMAIL="${!email_varname}"								>> ./$base_domain/config
+    else
+      echo "Let's Encrypt Staging : Disabled"
+      echo "CA=\"https://acme-staging.api.letsencrypt.org/directory\""      >  ./$base_domain/config
+      echo "WELLKNOWN=\"/usr/share/nginx/html/.well-known/acme-challenge\""	>> ./$base_domain/config
+      echo CONTACT_EMAIL="${!email_varname}"				                >> ./$base_domain/config
     fi
+
+    for domain in "${!hosts_array}"; do
+      # Add all the domains to certificate
+      params_d_str+=" --domain $domain"
+    done
+
+    echo "# Creating/Renewal $base_domain certificates... (${hosts_array_expanded[*]})"
+    /usr/local/bin/letsencrypt.sh \
+      --cron \
+      $params_d_str \
+      --challenge http-01 \
+      --out ./ \
+      --algo secp384r1 \
+      --config ./$base_domain/config
+      letsencrypt_sh_return=$?
+
+      current=`openssl sha256 -r ./$base_domain/privkey.pem | awk '{print $1}'`
+      last=`cat ./$base_domain/timestamp`
+
+      if [ ! "$STAGING" = "yes" ];then
+        if [ "$last" != "$current" ];then
+          echo "## Creating/Renewal $base_domain HTTP Public Key Pinning... (${hosts_array_expanded[*]})"
+            
+            # Out of the main key, Base64 encoding
+            HPKP_Key1=`/usr/bin/openssl x509 -noout -in ./$base_domain/cert.pem -pubkey |\
+              /usr/bin/openssl pkey -pubin -outform der |\
+              /usr/bin/openssl dgst -sha256 -binary |\
+              /bin/base64`
+
+            # Take out the Certificate issuer key, Base64 encoding
+            HPKP_Key2=`/usr/bin/openssl x509 -noout -in ./$base_domain/chain.pem -pubkey |\
+              /usr/bin/openssl pkey -pubin -outform der |\
+              /usr/bin/openssl dgst -sha256 -binary |\
+              /bin/base64`
+
+            # Backup key generation
+            /usr/bin/openssl req -new -nodes \
+              -newkey ec:<(openssl ecparam -name secp384r1) \
+              -subj "/C=$C/ST=$ST/L=$L/O=$O/OU=$OU/CN=$base_domain" \
+              -keyout ./$base_domain/hpkp-backup.key \
+              -out ./$base_domain/hpkp-backup.csr
+
+            # Take out the backup key, Base64 encoding
+            HPKP_Key3=`/usr/bin/openssl req -pubkey < ./$base_domain/hpkp-backup.csr |\
+            /usr/bin/openssl pkey -pubin -outform der | \
+            /usr/bin/openssl dgst -sha256 -binary | \
+            /bin/base64`
+
+            # HPKP Settings
+            mkdir -p /etc/nginx/vhost.d/
+            echo add_header Public-Key-Pins "'pin-sha256=\"$HPKP_Key1\"; pin-sha256=\"$HPKP_Key2\"; pin-sha256=\"$HPKP_Key3\"; max-age=600; includeSubDomains'"";" > /etc/nginx/vhost.d/$base_domain-HPKP.conf
+
+          echo "## Creating/Renewal $base_domain Certificate Transparency... (${hosts_array_expanded[*]})"
+
+            mkdir -p ./$base_domain/scts
+
+            echo "### Sending $base_domain ct.googleapis.com/aviator... (${hosts_array_expanded[*]})"
+            /usr/local/bin/ct-submit ct.googleapis.com/aviator \
+              <./$base_domain/fullchain.pem \
+              > ./$base_domain/scts/aviator.sct
+
+            echo "### Sending $base_domain ct.googleapis.com/pilot... (${hosts_array_expanded[*]})"
+            /usr/local/bin/ct-submit ct.googleapis.com/pilot \
+              <./$base_domain/fullchain.pem \
+              > ./$base_domain/scts/pilot.sct
+
+            echo "### Sending $base_domain ct.googleapis.com/rocketeer... (${hosts_array_expanded[*]})"
+            /usr/local/bin/ct-submit ct.googleapis.com/rocketeer \
+              <./$base_domain/fullchain.pem \
+              > ./$base_domain/scts/rocketeer.sct
+
+          echo "## Creating/Renewal $base_domain Diffie-Hellman... (${hosts_array_expanded[*]})"
+          /usr/bin/openssl dhparam 2048 -out ./$base_domain/dhparam.pem
+        fi  
+      fi
+
+    if [[ $letsencrypt_sh_return -eq 0 ]]; then
+      for domain in "${!hosts_array}"; do
+        echo "Creating/Renewal $base_domain Symbolic link... (${hosts_array_expanded[*]})"
+        # Symlink all alternative names to base domain certificate
+        ln -sf ./$base_domain/fullchain.pem /etc/nginx/certs/$domain".crt"
+        ln -sf ./$base_domain/chain.pem		/etc/nginx/certs/$domain".ocsp.crt"
+        ln -sf ./$base_domain/privkey.pem       /etc/nginx/certs/$domain".key"
+        ln -sf ./$base_domain/dhparam.pem	/etc/nginx/certs/$domain".dhparam.pem"
+        echo `openssl sha256 -r ./$base_domain/privkey.pem | awk '{print $1}'` > ./$base_domain/timestamp
+      done
+      reload_nginx='true'
+    fi
+  done
+  unset LETSENCRYPT_CONTAINERS
+  if [[ "$reload_nginx" == 'true' ]]; then
+    /usr/local/bin/docker-gen -only-exposed /app/nginx.tmpl /etc/nginx/conf.d/default.conf
+    nginx -s reload
+  fi
 }
 
 pid=
