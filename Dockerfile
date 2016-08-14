@@ -221,9 +221,9 @@ RUN apk add --no-cache \
 
 EXPOSE 80 443
 
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 COPY docker-entrypoint.sh /app/
-COPY letsencrypt/letsencrypt_service letsencrypt/letsencrypt_service_data.tmpl letsencrypt/update_certs letsencrypt/update_nginx nginx/nginx.tmpl nginx/Procfile /app/
+COPY letsencrypt/letsencrypt_service letsencrypt/letsencrypt_service_data.tmpl letsencrypt/update_certs letsencrypt/update_nginx nginx.tmpl Procfile /app/
 
 WORKDIR /app/
 
