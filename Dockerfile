@@ -224,7 +224,7 @@ EXPOSE 80 443
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY docker-entrypoint.sh /app/
-COPY letsencrypt/letsencrypt_service letsencrypt/letsencrypt_service_data.tmpl letsencrypt/nginx.tmpl letsencrypt/Procfile letsencrypt/update_certs letsencrypt/update_nginx /app/
+COPY letsencrypt_service letsencrypt_service_data.tmpl nginx.tmpl Procfile update_certs update_nginx /app/
 
 WORKDIR /app/
 
