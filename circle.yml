@@ -18,3 +18,5 @@ dependencies:
 test:
   override:
     - make test
+    - docker images
+    - docker history foxboxsnet/nginx-proxy-alpine-letsencrypt:bats
