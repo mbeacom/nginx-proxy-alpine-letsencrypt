@@ -87,6 +87,10 @@ RUN apk update \
 	&& rm nginx.tar.gz \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	\
+	# healthcheck Settings
+	&& mkdir -p /etc/nginx/vhost.d \
+	&& touch /etc/nginx/vhost.d/healthcheck.conf
+	\
 	# nginx-ct Module
 	# https://github.com/grahamedgecombe/nginx-ct
 	&& curl -fSL https://github.com/grahamedgecombe/nginx-ct/archive/v$NGINX_CT_VERSION.tar.gz \
@@ -216,16 +220,14 @@ RUN apk add --no-cache \
 		coreutils \
 	&& curl -L https://raw.githubusercontent.com/lukas2511/letsencrypt.sh/master/letsencrypt.sh \
 			-o /usr/local/bin/letsencrypt.sh \
-	&& chmod +x /usr/local/bin/letsencrypt.sh \
-	&& mkdir -p /etc/nginx/vhost.d \
-	&& touch /etc/nginx/vhost.d/healthcheck.conf
+	&& chmod +x /usr/local/bin/letsencrypt.sh
 
 
 EXPOSE 80 443
 
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker-entrypoint.sh /app/
-COPY letsencrypt/letsencrypt_service letsencrypt/letsencrypt_service_data.tmpl letsencrypt/update_certs letsencrypt/update_nginx nginx.tmpl Procfile /app/
+COPY letsencrypt/letsencrypt_service letsencrypt/letsencrypt_service_data.tmpl letsencrypt/update_certs letsencrypt/update_nginx nginx/nginx.tmpl nginx/Procfile /app/
 
 WORKDIR /app/
 
