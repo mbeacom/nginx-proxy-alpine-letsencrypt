@@ -30,14 +30,14 @@ update_certs() {
 
     if [ "$STAGING" = "yes" ];then
       echo "Let's Encrypt Staging : Enabled"
-      echo "CA=\"https://acme-staging.api.letsencrypt.org/directory\""		>  ./$base_domain/config
+      echo "CA=\"https://acme-staging.api.letsencrypt.org/directory\""	   	>  ./$base_domain/config
       echo "WELLKNOWN=\"/usr/share/nginx/html/.well-known/acme-challenge\""	>> ./$base_domain/config
-      echo CONTACT_EMAIL="${!email_varname}"								>> ./$base_domain/config
+      echo CONTACT_EMAIL="${!email_varname}"						                 		>> ./$base_domain/config
     else
       echo "Let's Encrypt Staging : Disabled"
       echo "CA=\"https://acme-staging.api.letsencrypt.org/directory\""      >  ./$base_domain/config
       echo "WELLKNOWN=\"/usr/share/nginx/html/.well-known/acme-challenge\""	>> ./$base_domain/config
-      echo CONTACT_EMAIL="${!email_varname}"				                >> ./$base_domain/config
+      echo CONTACT_EMAIL="${!email_varname}"				                        >> ./$base_domain/config
     fi
 
     for domain in "${!hosts_array}"; do
@@ -120,9 +120,9 @@ update_certs() {
         echo "Creating/Renewal $base_domain Symbolic link... (${hosts_array_expanded[*]})"
         # Symlink all alternative names to base domain certificate
         ln -sf ./$base_domain/fullchain.pem /etc/nginx/certs/$domain".crt"
-        ln -sf ./$base_domain/chain.pem		/etc/nginx/certs/$domain".ocsp.crt"
-        ln -sf ./$base_domain/privkey.pem       /etc/nginx/certs/$domain".key"
-        ln -sf ./$base_domain/dhparam.pem	/etc/nginx/certs/$domain".dhparam.pem"
+        ln -sf ./$base_domain/chain.pem		  /etc/nginx/certs/$domain".ocsp.crt"
+        ln -sf ./$base_domain/privkey.pem   /etc/nginx/certs/$domain".key"
+        ln -sf ./$base_domain/dhparam.pem	  /etc/nginx/certs/$domain".dhparam.pem"
         echo `openssl sha256 -r ./$base_domain/privkey.pem | awk '{print $1}'` > ./$base_domain/timestamp
       done
       reload_nginx='true'
