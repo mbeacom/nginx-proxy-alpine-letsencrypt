@@ -89,7 +89,7 @@ RUN apk update \
 	\
 	# healthcheck Settings
 	&& mkdir -p /etc/nginx/vhost.d \
-	&& touch /etc/nginx/vhost.d/healthcheck.conf
+	&& touch /etc/nginx/vhost.d/healthcheck.conf \
 	\
 	# nginx-ct Module
 	# https://github.com/grahamedgecombe/nginx-ct
