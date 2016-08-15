@@ -35,8 +35,7 @@ update_certs() {
       echo CONTACT_EMAIL="${!email_varname}"						                 		>> ./$base_domain/config
     else
       echo "Let's Encrypt Staging : Disabled"
-      echo "CA=\"https://acme-staging.api.letsencrypt.org/directory\""      >  ./$base_domain/config
-      echo "WELLKNOWN=\"/usr/share/nginx/html/.well-known/acme-challenge\""	>> ./$base_domain/config
+      echo "WELLKNOWN=\"/usr/share/nginx/html/.well-known/acme-challenge\""	>  ./$base_domain/config
       echo CONTACT_EMAIL="${!email_varname}"				                        >> ./$base_domain/config
     fi
 

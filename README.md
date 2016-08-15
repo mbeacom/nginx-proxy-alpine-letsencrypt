@@ -1,18 +1,51 @@
 # nginx-proxy-alpine-letsencrypt
 
-
 ![nginx 1.11.3](https://img.shields.io/badge/nginx-1.11.3-brightgreen.svg) ![License MIT](https://img.shields.io/badge/license-MIT-blue.svg) [![](https://img.shields.io/docker/stars/foxboxsnet/nginx-proxy-alpine-letsencrypt.svg)](https://hub.docker.com/r/foxboxsnet/nginx-proxy-alpine-letsencrypt 'DockerHub') [![](https://img.shields.io/docker/pulls/foxboxsnet/nginx-proxy-alpine-letsencrypt.svg)](https://hub.docker.com/r/foxboxsnet/nginx-proxy-alpine-letsencrypt 'DockerHub')
 
-| Branch | Build Status |
-|:-------|:-------------|
+| Branch  | Build Status |
+|:--------|:-------------|
 | Release | [![CircleCI](https://circleci.com/gh/FoxBoxsnet/nginx-proxy-alpine-letsencrypt/tree/Release.svg?style=svg)](https://circleci.com/gh/FoxBoxsnet/nginx-proxy-alpine-letsencrypt/tree/Release) |
-| develop | [![CircleCI](https://circleci.com/gh/FoxBoxsnet/nginx-proxy-alpine-letsencrypt/tree/dev.svg?style=svg)](https://circleci.com/gh/FoxBoxsnet/nginx-proxy-alpine-letsencrypt/tree/dev) |
+| Develop | [![CircleCI](https://circleci.com/gh/FoxBoxsnet/nginx-proxy-alpine-letsencrypt/tree/dev.svg?style=svg)](https://circleci.com/gh/FoxBoxsnet/nginx-proxy-alpine-letsencrypt/tree/dev) |
 
-### 
+## Description
+high security of the nginx-proxy.
 
 
+# Nginx configuration
+## Add module
+---
++ [grahamedgecombe/nginx-ct](https://github.com/grahamedgecombe/nginx-ct)
++ [openresty/headers-more-nginx-module](https://github.com/openresty/headers-more-nginx-module)
+
+## Configuration
+---
++ ssl_ciphers
++ IPv6 support
++ DH:(Diffie-Hellman) parameter for DHE ciphersuites, recommended 2048 bits
++ HSTS:(HTTP Strict Transport Security)
++ HPKP:(HTTP Public Key Pinning)
++ CT:(Certificate Transparency)
++ OCSP Stapling
++ gzip
++ more_clear_headers X-Powered-By
++ more_clear_headers X-Runtime
++ add_header X-Frame-Options SAMEORIGIN
++ add_header X-XSS-Protection "1; mode=block"
++ add_header X-Content-Type-Options nosniff
++ Case of 100 MB bandwidth limit
++ memory limit for number of connections
++ memory limit for number of requests
+
+## letsencrypt.sh configuration
+---
++ Staging mode
++ ECCDSA 384Bit (secp384r1)
 
 
+---
+---
+## Readme [jwilder/nginx-proxy](https://github.com/jwilder/nginx-proxy) 
+---
 nginx-proxy sets up a container running nginx and [docker-gen][1].  docker-gen generates reverse proxy configs for nginx and reloads nginx when containers are started and stopped.
 
 See [Automated Nginx Reverse Proxy for Docker][2] for why you might want to use this.
@@ -295,10 +328,10 @@ To run tests, you'll need to install [bats 0.4.0](https://github.com/sstephenson
 
     make test
 
-# AUTHORS
+# AUTHOR
 This is a license of software used in the Docker Container.
 
-## [jwilder/docker-gen](https://github.com/jwilder/docker-gen),[jwilder/nginx-proxy](https://github.com/jwilder/nginx-proxy) 
+## [jwilder/nginx-proxy](https://github.com/jwilder/nginx-proxy) 
 ```
 The MIT License (MIT)
 

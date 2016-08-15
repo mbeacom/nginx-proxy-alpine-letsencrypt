@@ -138,20 +138,20 @@ server {
 	ssl_certificate_key /etc/nginx/certs/{{ (printf "%s.key" $cert) }};
 
 
-	# Diffie-Hellman parameter for DHE ciphersuites, recommended 2048 bits
+	# DH:(Diffie-Hellman) parameter for DHE ciphersuites, recommended 2048 bits
 	{{ if (exists (printf "/etc/nginx/certs/%s.dhparam.pem" $cert)) }}
 	ssl_dhparam {{ printf "/etc/nginx/certs/%s.dhparam.pem" $cert }};
 	{{ end }}
 
-	# HSTS (ngx_http_headers_module is required) (15768000 seconds = 6 months)
+	# HSTS:(HTTP Strict Transport Security) (15768000 seconds = 6 months)
 	add_header Strict-Transport-Security "max-age=15768000";
 
-	# HTTP Public Key Pinning
+	# HPKP:(HTTP Public Key Pinning)
 	{{ if (exists (printf "/etc/nginx/vhost.d/%s-HPKP.conf" $host)) }}
 	include {{ printf "/etc/nginx/vhost.d/%s-HPKP.conf" $host }};
 	{{ end }}
 
-	# Certificate Transparency
+	# CT:(Certificate Transparency)
 	{{ if (exists (printf "/etc/nginx/certs/%s/scts" $host)) }}
 	ssl_ct on;
 	ssl_ct_static_scts {{ printf "/etc/nginx/certs/%s/scts" $host }};
