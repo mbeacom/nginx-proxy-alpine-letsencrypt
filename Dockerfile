@@ -108,17 +108,14 @@ RUN apk update \
 	# ngx_brotli Module
 	# https://github.com/bagder/libbrotli
 	# https://github.com/google/ngx_brotli
-	&& curl -fSL https://github.com/bagder/libbrotli/archive/master.tar.gz \
-		-o libbrotli-master.tar.gz \
-	&& tar -zxC ./ -f libbrotli-master.tar.gz \
-	&& rm libbrotli-master.tar.gz \
-	&& cd ./libbrotli-master \
+	&& git clone https://github.com/bagder/libbrotli libbrotli \
+	&& cd ./libbrotli \
 	&& ./autogen.sh \
 	&& ./configure \
 	&& make \
 	&& make install \
 	&& cd .. \
-	&& rm -rf ./libbrotli-master \
+	&& rm -rf ./libbrotli \
 	\
 	# https://github.com/google/ngx_brotli/archive/master.tar.gz
 	&& curl -fSL https://github.com/google/ngx_brotli/archive/master.tar.gz \
