@@ -122,7 +122,6 @@ RUN apk update \
 		-o ngx_brotli-master.tar.gz \
 	&& tar -zxC ./ -f ngx_brotli-master.tar.gz \
 	&& rm ngx_brotli-master.tar.gz \
-	&& export NGX_BROTLI_STATIC_MODULE_ONLY=1 \
 	\
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./configure $CONFIG --with-debug \
