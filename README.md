@@ -42,8 +42,8 @@ docker run -d \
 -p 80:80 \
 -p 443:443 \
 -v /var/run/docker.sock:/tmp/docker.sock:ro \
--e NGX_STS_IP='172.18.15.15' \
--e NGX_STS_NW='172.18.15.0/24' \
+-e NGX_STS_IP='192.168.25.254' \
+-e NGX_STS_NW='192.168.25.0/24' \
 foxboxsnet/nginx-proxy-alpine-letsencrypt
 
 docker run -d \
