@@ -10,7 +10,7 @@ update-dependencies:
 	docker pull docker:1.9.1
 
 test:
-	docker build -t dmp1ce/nginx-proxy-letsencrypt:bats .
+	docker build -t foxboxsnet/nginx-proxy-alpine-letsencrypt:bats .
 	bats test
 
 test-clean:

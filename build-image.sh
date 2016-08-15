@@ -1,9 +1,12 @@
 #!/bin/bash
 
 TAG=${TAG:-$1}
-IMAGE=foxboxsnet/nginx-proxy-alpine-letsencrypt:${TAG}
-
+strDIR=`basename $PWD`
+IMAGE=foxboxsnet/$strDIR:${TAG}
+echo ${IMAGE}
 git pull
+
+sleep 10s
 
 docker rm `docker ps -a -q`	> /dev/null
 docker images | grep none | awk '{print $3}' | xargs docker rmi	> /dev/null
@@ -14,4 +17,4 @@ docker build --no-cache -t ${IMAGE} .
 
 docker stop test	> /dev/null
 docker rm test		> /dev/null
-../run.sh ${TAG}
+../run.sh ${IMAGE}

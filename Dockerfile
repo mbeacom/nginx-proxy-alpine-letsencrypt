@@ -3,7 +3,7 @@ FROM alpine:3.4
 MAINTAINER FoxBoxsnet
 
 # Environment variable
-ENV NGINX_VERSION 1.11.2
+ENV NGINX_VERSION 1.11.3
 ENV NGINX_CT_VERSION 1.3.0
 ENV HEADERS_MORE_NGINX_MODULE_VERSION 0.30
 ## nginx-proxy
@@ -11,7 +11,6 @@ ENV DOCKER_GEN_VERSION 0.7.3
 ENV FOREGO_VERSION v0.16.1
 ENV DOCKER_HOST unix:///tmp/docker.sock
 ## letsencrypt.sh
-ENV ACME_VERSION 2.3.0
 ENV OPENSSL_VERSION 1.0.2h-r1
 ## ct-submit
 ENV CT_SUBMIT_VERSION 1.1.2
@@ -50,7 +49,6 @@ ENV CONFIG="\
 		\
 		--add-dynamic-module=./nginx-ct-$NGINX_CT_VERSION \
 		--add-dynamic-module=./headers-more-nginx-module-$HEADERS_MORE_NGINX_MODULE_VERSION \
-		--add-dynamic-module=./ngx_brotli-master \
 	"
 
 RUN apk update \
@@ -88,6 +86,10 @@ RUN apk update \
 	&& rm nginx.tar.gz \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	\
+	# healthcheck Settings
+	&& mkdir -p /etc/nginx/vhost.d \
+	&& touch /etc/nginx/vhost.d/healthcheck.conf \
+	\
 	# nginx-ct Module
 	# https://github.com/grahamedgecombe/nginx-ct
 	&& curl -fSL https://github.com/grahamedgecombe/nginx-ct/archive/v$NGINX_CT_VERSION.tar.gz \
@@ -101,23 +103,6 @@ RUN apk update \
 		-o headers-more-nginx-module.tar.gz \
 	&& tar -zxC ./ -f headers-more-nginx-module.tar.gz \
 	&& rm headers-more-nginx-module.tar.gz \
-	\
-	# ngx_brotli Module
-	# https://github.com/bagder/libbrotli
-	# https://github.com/google/ngx_brotli
-	&& git clone https://github.com/bagder/libbrotli libbrotli \
-	&& cd ./libbrotli \
-	&& ./autogen.sh \
-	&& ./configure \
-	&& make \
-	&& make install \
-	&& cd .. \
-	&& rm -rf ./libbrotli \
-	\
-	&& curl -fSL https://github.com/google/ngx_brotli/archive/master.tar.gz \
-		-o ngx_brotli.tar.gz \
-	&& tar -zxC ./ -f ngx_brotli.tar.gz \
-	&& rm ngx_brotli.tar.gz \
 	\
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./configure $CONFIG --with-debug \
@@ -224,7 +209,7 @@ EXPOSE 80 443
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY docker-entrypoint.sh /app/
-COPY letsencrypt_service letsencrypt_service_data.tmpl nginx.tmpl Procfile update_certs update_nginx /app/
+COPY letsencrypt/letsencrypt_service letsencrypt/letsencrypt_service_data.tmpl letsencrypt/update_certs letsencrypt/update_nginx nginx.tmpl Procfile /app/
 
 WORKDIR /app/
 
