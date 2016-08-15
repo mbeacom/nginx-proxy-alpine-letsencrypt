@@ -57,7 +57,6 @@ RUN apk update \
 	&& adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
 	&& apk add --no-cache --virtual .build-nginx \
 		gcc \
-		c++ \
 		libc-dev \
 		make \
 		openssl-dev \
