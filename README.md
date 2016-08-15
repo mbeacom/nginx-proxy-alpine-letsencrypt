@@ -1,4 +1,4 @@
-# nginx-proxy-alpine-letsencrypt
+# foxboxsnet/nginx-proxy-alpine-letsencrypt
 
 ![nginx 1.11.3](https://img.shields.io/badge/nginx-1.11.3-brightgreen.svg) ![License MIT](https://img.shields.io/badge/license-MIT-blue.svg) [![](https://img.shields.io/docker/stars/foxboxsnet/nginx-proxy-alpine-letsencrypt.svg)](https://hub.docker.com/r/foxboxsnet/nginx-proxy-alpine-letsencrypt 'DockerHub') [![](https://img.shields.io/docker/pulls/foxboxsnet/nginx-proxy-alpine-letsencrypt.svg)](https://hub.docker.com/r/foxboxsnet/nginx-proxy-alpine-letsencrypt 'DockerHub')
 
@@ -10,6 +10,48 @@
 ## Description
 high security of the nginx-proxy.
 
+## Usage
+---
+### Environment
++ `NGX_STS_IP` nginx status for `server_name` IP address  
+Example : `-e NGX_STS_IP='192.168.25.254'`
+  
++ `NGX_STS_NW` nginx status `allow` permission network   
+Example : `-e NGX_STS_NW='192.168.25.0/24'`
+```conf
+# Nginx Status is effective when inserted
+server {
+    listen 80;
+    server_name $NGX_STS_IP;
+
+    location = /healthcheck.html {
+        empty_gif;
+        access_log off;
+        allow $NGX_STS_NW;
+        deny all;
+    }
+}
+```
++ `STAGING` Let's Encrypt Staging mode  
+Example : `-e STAGING='yes'`
+  
+## Run
+```shell
+docker run -d \
+--name test \
+-p 80:80 \
+-p 443:443 \
+-v /var/run/docker.sock:/tmp/docker.sock:ro \
+-e NGX_STS_IP='172.18.15.15' \
+-e NGX_STS_NW='172.18.15.0/24' \
+foxboxsnet/nginx-proxy-alpine-letsencrypt
+
+docker run -d \
+-e VIRTUAL_HOST="foo.bar.com,bar.com" \
+-e LETSENCRYPT_HOST="foo.bar.com,bar.com" \
+-e LETSENCRYPT_EMAIL="foo@bar.com" \
+nginx:1.11.1-alpine
+```
 
 # Nginx configuration
 ## Add module
@@ -42,19 +84,79 @@ high security of the nginx-proxy.
 + ECCDSA 384Bit (secp384r1)
 
 
+## SSL Server Test
+---
+### Console
+```
+forego       | starting nginx.1 on port 5000
+forego       | starting dockergen.1 on port 5100
+forego       | starting letsencrypt.1 on port 5300
+letsencrypt.1 | Waiting 10s before updating certs...
+dockergen.1  | 2016/08/15 11:05:34 Generated '/etc/nginx/conf.d/default.conf' from 2 containers
+dockergen.1  | 2016/08/15 11:05:34 Running '/app/update_nginx'
+dockergen.1  | 2016/08/15 11:05:34 Watching docker events
+dockergen.1  | 2016/08/15 11:05:34 Contents of /etc/nginx/conf.d/default.conf did not change. Skipping notification '/app/update_nginx'
+letsencrypt.1 | Let's Encrypt Staging : Disabled
+letsencrypt.1 | # INFO: Using main config file ./example.com/config
+letsencrypt.1 | + Generating account key...
+letsencrypt.1 | + Registering account key with letsencrypt...
+letsencrypt.1 | Processing example.com
+letsencrypt.1 |  + Using certificate specific config file!
+letsencrypt.1 |  + Signing domains...
+letsencrypt.1 |  + Generating private key...
+letsencrypt.1 |  + Generating signing request...
+letsencrypt.1 |  + Requesting challenge for example.com...
+letsencrypt.1 |  + Responding to challenge for example.com...
+nginx.1      | example.com 66.133.109.36 - - [15/Aug/2016:11:05:48 +0000] "GET /.well-known/acme-challenge/d01XwTpurMjmxjSq-26H1wC7dtZLiSLvLY4jVcLPkpA HTTP/1.1" 200 87 "-" "Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)"
+letsencrypt.1 |  + Challenge is valid!
+letsencrypt.1 |  + Requesting certificate...
+letsencrypt.1 |  + Checking certificate...
+letsencrypt.1 |  + Done!
+letsencrypt.1 |  + Creating fullchain.pem...
+letsencrypt.1 |  + Done!
+letsencrypt.1 | cat: ./example.com/timestamp: No such file or directory
+letsencrypt.1 | ## Creating/Renewal example.com HTTP Public Key Pinning... (example.com)
+letsencrypt.1 | Generating a 384 bit EC private key
+letsencrypt.1 | writing new private key to './example.com/hpkp-backup.key'
+letsencrypt.1 | -----
+letsencrypt.1 | ## Creating/Renewal example.com Certificate Transparency... (example.com)
+letsencrypt.1 | ### Sending example.com ct.googleapis.com/aviator... (example.com)
+letsencrypt.1 | ### Sending example.com ct.googleapis.com/pilot... (example.com)
+letsencrypt.1 | ### Sending example.com ct.googleapis.com/rocketeer... (example.com)
+letsencrypt.1 | ## Creating/Renewal example.com Diffie-Hellman... (example.com)
+letsencrypt.1 | Generating DH parameters, 2048 bit long safe prime, generator 2
+letsencrypt.1 | This is going to take a long time
+letsencrypt.1 | ...........................................................................+........
+letsencrypt.1 | Creating/Renewal example.com Symbolic link... (example.com)
+letsencrypt.1 | 2016/08/15 11:06:14 Generated '/etc/nginx/conf.d/default.conf' from 2 containers
+letsencrypt.1 | 2016/08/15 11:06:14 [notice] 481#481: signal process started
+letsencrypt.1 | Sleep for 3600s
+```
+### Qualys SSL Labs
+![](./images/ssllabs/web-short.png)
+[Click here](./images/ssllabs/web-full.png) to see the full version
+
+
 ---
 ---
-## Readme [jwilder/nginx-proxy](https://github.com/jwilder/nginx-proxy) 
+## Readme [dmp1ce/nginx-proxy-letsencrypt](https://github.com/dmp1ce/nginx-proxy-letsencrypt)
 ---
+**Development efforts have moved to the [docker-letsencrypt-nginx-proxy-companion](https://github.com/JrCs/docker-letsencrypt-nginx-proxy-companion) project because docker-letsencrypt-nginx-proxy-companion doesn't require a fork of nginx-proxy in order to register Let's Encrypt certificates.**
+
+**Currently, this project is unsupported. Contact daveparrish@tutanota.com if you want to take over support of this project.**
+
+
 nginx-proxy sets up a container running nginx and [docker-gen][1].  docker-gen generates reverse proxy configs for nginx and reloads nginx when containers are started and stopped.
 
 See [Automated Nginx Reverse Proxy for Docker][2] for why you might want to use this.
+
+nginx-proxy-letsencrypt is a fork of nginx-proxy which adds Let's Encrypt support. Let's Encrypt allows multiple virtual hosts to have TLS certificates automatically created and renewed! The reason the jwilder/nginx-proxy was forked is because it seemed unlikely that the specific Let's Encrypt use case world be added to the more generic nginx-proxy project and the Let's Encrypt client does add some storage overhead. See [pull request](https://github.com/jwilder/nginx-proxy/pull/300) for details about fork. See [Let's Encrypt section](#lets-encrypt) for configuration details.
 
 ### Usage
 
 To run it:
 
-    $ docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy
+    $ docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro foxboxsnet/nginx-proxy-alpine-letsencrypt
 
 Then start any containers you want proxied with an env var `VIRTUAL_HOST=subdomain.youdomain.com`
 
@@ -63,32 +165,6 @@ Then start any containers you want proxied with an env var `VIRTUAL_HOST=subdoma
 The containers being proxied must [expose](https://docs.docker.com/reference/run/#expose-incoming-ports) the port to be proxied, either by using the `EXPOSE` directive in their `Dockerfile` or by using the `--expose` flag to `docker run` or `docker create`.
 
 Provided your DNS is setup to forward foo.bar.com to the a host running nginx-proxy, the request will be routed to a container with the VIRTUAL_HOST env var set.
-
-### Docker Compose
-
-```yaml
-version: '2'
-services:
-  nginx-proxy:
-    image: jwilder/nginx-proxy
-    container_name: nginx-proxy
-    ports:
-      - "80:80"
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-
-  whoami:
-    image: jwilder/whoami
-    container_name: whoami
-    environment:
-      - VIRTUAL_HOST=whoami.local
-```
-
-```shell
-$ docker-compose up
-$ curl -H "Host: whoami.local" localhost
-I''m 5b129ab83266
-```
 
 ### Multiple Ports
 
@@ -105,20 +181,6 @@ If you need to support multiple virtual hosts for a container, you can separate 
 
 You can also use wildcards at the beginning and the end of host name, like `*.bar.com` or `foo.bar.*`. Or even a regular expression, which can be very useful in conjunction with a wildcard DNS service like [xip.io](http://xip.io), using `~^foo\.bar\..*\.xip\.io` will match `foo.bar.127.0.0.1.xip.io`, `foo.bar.10.0.2.2.xip.io` and all other given IPs. More information about this topic can be found in the nginx documentation about [`server_names`](http://nginx.org/en/docs/http/server_names.html).
 
-### Multiple Networks
-
-With the addition of [overlay networking](https://docs.docker.com/engine/userguide/networking/get-started-overlay/) in Docker 1.9, your `nginx-proxy` container may need to connect to backend containers on multiple networks. By default, if you don't pass the `--net` flag when your `nginx-proxy` container is created, it will only be attached to the default `bridge` network. This means that it will not be able to connect to containers on networks other than `bridge`.
-
-If you want your `nginx-proxy` container to be attached to a different network, you must pass the `--net=my-network` option in your `docker create` or `docker run` command. At the time of this writing, only a single network can be specified at container creation time. To attach to other networks, you can use the `docker network connect` command after your container is created:
-
-```console
-$ docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro \
-    --name my-nginx-proxy --net my-network jwilder/nginx-proxy
-$ docker network connect my-other-network my-nginx-proxy
-```
-
-In this example, the `my-nginx-proxy` container will be connected to `my-network` and `my-other-network` and will be able to proxy to other containers attached to those networks.
-
 ### SSL Backends
 
 If you would like to connect to your backend using HTTPS instead of HTTP, set `VIRTUAL_PROTO=https` on the backend container.
@@ -127,7 +189,7 @@ If you would like to connect to your backend using HTTPS instead of HTTP, set `V
 
 To set the default host for nginx use the env var `DEFAULT_HOST=foo.bar.com` for example
 
-    $ docker run -d -p 80:80 -e DEFAULT_HOST=foo.bar.com -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy
+    $ docker run -d -p 80:80 -e DEFAULT_HOST=foo.bar.com -v /var/run/docker.sock:/tmp/docker.sock:ro foxboxsnet/nginx-proxy-alpine-letsencrypt
 
 
 ### Separate Containers
@@ -137,7 +199,7 @@ image and the official [nginx](https://registry.hub.docker.com/_/nginx/) image.
 
 You may want to do this to prevent having the docker socket bound to a publicly exposed container service.
 
-To run nginx proxy as a separate container you'll need to have [nginx.tmpl](https://github.com/jwilder/nginx-proxy/blob/master/nginx.tmpl) on your host system.
+To run nginx proxy as a separate container you'll need to have [nginx.tmpl](https://github.com/foxboxsnet/nginx-proxy-alpine-letsencrypt/blob/master/nginx.tmpl) on your host system.
 
 First start nginx with a volume:
 
@@ -150,7 +212,7 @@ Then start the docker-gen container with the shared volume and template:
 $ docker run --volumes-from nginx \
     -v /var/run/docker.sock:/tmp/docker.sock:ro \
     -v $(pwd):/etc/docker-gen/templates \
-    -t jwilder/docker-gen -notify-sighup nginx -watch /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
+    -t jwilder/docker-gen -notify-sighup nginx -watch -only-exposed /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
 ```
 
 Finally, start your containers with `VIRTUAL_HOST` environment variables.
@@ -164,7 +226,7 @@ certificates or optionally specifying a cert name (for SNI) as an environment va
 
 To enable SSL:
 
-    $ docker run -d -p 80:80 -p 443:443 -v /path/to/certs:/etc/nginx/certs -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy
+    $ docker run -d -p 80:80 -p 443:443 -v /path/to/certs:/etc/nginx/certs -v /var/run/docker.sock:/tmp/docker.sock:ro foxboxsnet/nginx-proxy-alpine-letsencrypt
 
 The contents of `/path/to/certs` should contain the certificates and private keys for any virtual
 hosts in use.  The certificate and keys should be named after the virtual host with a `.crt` and
@@ -196,7 +258,7 @@ should provide compatibility with clients back to Firefox 1, Chrome 1, IE 7, Ope
 Windows XP IE8, Android 2.3, Java 7.  The configuration also enables HSTS, and SSL
 session caches.
 
-The default behavior for the proxy when port 80 and 443 are exposed is as follows:
+The behavior for the proxy when port 80 and 443 are exposed is as follows:
 
 * If a container has a usable cert, port 80 will redirect to 443 for that container so that HTTPS
 is always preferred when available.
@@ -207,14 +269,41 @@ to establish a connection.  A self-signed or generic cert named `default.crt` an
 will allow a client browser to make a SSL connection (likely w/ a warning) and subsequently receive
 a 503.
 
-To serve traffic in both SSL and non-SSL modes without redirecting to SSL, you can include the
-environment variable `HTTPS_METHOD=noredirect` (the default is `HTTPS_METHOD=redirect`).  You can also
-disable the non-SSL site entirely with `HTTPS_METHOD=nohttp`. `HTTPS_METHOD` must be specified
-on each container for which you want to override the default behavior.  If `HTTPS_METHOD=noredirect` is
-used, Strict Transport Security (HSTS) is disabled to prevent HTTPS users from being redirected by the
-client.  If you cannot get to the HTTP site after changing this setting, your browser has probably cached
-the HSTS policy and is automatically redirecting you back to HTTPS.  You will need to clear your browser's
-HSTS cache or use an incognito window / different browser.
+#### Let's Encrypt
+
+Use the Let's Encrypt service to automatically create a valid certificate for a virtual host.
+
+Set the following environment variables to enable Let's Encrypt support for a container being proxied.
+
+- `LETSENCRYPT_HOST`
+- `LETSENCRYPT_EMAIL`
+
+The `LETSENCRYPT_HOST` variable most likely needs to be the same as the `VIRTUAL_HOST` variable and must be publicly reachable domains. Specify multiple hosts with a comma delimiter.
+
+For example
+
+```
+$ docker run -d -p 80:80 \
+    -e VIRTUAL_HOST="foo.bar.com,bar.com" \
+    -e LETSENCRYPT_HOST="foo.bar.com,bar.com" \
+    -e LETSENCRYPT_EMAIL="foo@bar.com" ...
+```
+
+##### Optional container environment variables
+
+Optional nginx-proxy-letsencrypt container environment variables for custom configuration.
+
+- `ACME_CA_URI` - Directory URI for the CA ACME API endpoint (default: ``https://acme-v01.api.letsencrypt.org/directory``)
+
+For example
+
+```
+$ docker run -d -p 80:80 -p 443:443 \
+    -e ACME_CA_URI="https://acme-staging.api.letsencrypt.org/directory" \
+    -v /path/to/certs:/etc/nginx/certs \
+    -v /var/run/docker.sock:/tmp/docker.sock:ro \
+    foxboxsnet/nginx-proxy-alpine-letsencrypt
+```
 
 ### Basic Authentication Support
 
@@ -226,7 +315,7 @@ $ docker run -d -p 80:80 -p 443:443 \
     -v /path/to/htpasswd:/etc/nginx/htpasswd \
     -v /path/to/certs:/etc/nginx/certs \
     -v /var/run/docker.sock:/tmp/docker.sock:ro \
-    jwilder/nginx-proxy
+    foxboxsnet/nginx-proxy-alpine-letsencrypt
 ```
 
 You'll need apache2-utils on the machine where you plan to create the htpasswd file. Follow these [instructions](http://httpd.apache.org/docs/2.2/programs/htpasswd.html)
@@ -266,7 +355,7 @@ To add settings on a proxy-wide basis, add your configuration file under `/etc/n
 This can be done in a derived image by creating the file in a `RUN` command or by `COPY`ing the file into `conf.d`:
 
 ```Dockerfile
-FROM jwilder/nginx-proxy
+FROM foxboxsnet/nginx-proxy-alpine-letsencrypt
 RUN { \
       echo 'server_tokens off;'; \
       echo 'client_max_body_size 100m;'; \
@@ -275,7 +364,7 @@ RUN { \
 
 Or it can be done by mounting in your custom configuration in your `docker run` command:
 
-    $ docker run -d -p 80:80 -p 443:443 -v /path/to/my_proxy.conf:/etc/nginx/conf.d/my_proxy.conf:ro -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy
+    $ docker run -d -p 80:80 -p 443:443 -v /path/to/my_proxy.conf:/etc/nginx/conf.d/my_proxy.conf:ro -v /var/run/docker.sock:/tmp/docker.sock:ro foxboxsnet/nginx-proxy-alpine-letsencrypt
 
 #### Per-VIRTUAL_HOST
 
@@ -285,7 +374,7 @@ In order to allow virtual hosts to be dynamically configured as backends are add
 
 For example, if you have a virtual host named `app.example.com`, you could provide a custom configuration for that host as follows:
 
-    $ docker run -d -p 80:80 -p 443:443 -v /path/to/vhost.d:/etc/nginx/vhost.d:ro -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy
+    $ docker run -d -p 80:80 -p 443:443 -v /path/to/vhost.d:/etc/nginx/vhost.d:ro -v /var/run/docker.sock:/tmp/docker.sock:ro foxboxsnet/nginx-proxy-alpine-letsencrypt
     $ { echo 'server_tokens off;'; echo 'client_max_body_size 100m;'; } > /path/to/vhost.d/app.example.com
 
 If you are using multiple hostnames for a single container (e.g. `VIRTUAL_HOST=example.com,www.example.com`), the virtual host configuration file must exist for each hostname. If you would like to use the same configuration for multiple virtual host names, you can use a symlink:
@@ -305,7 +394,7 @@ just like the previous section except with the suffix `_location`.
 
 For example, if you have a virtual host named `app.example.com` and you have configured a proxy_cache `my-cache` in another custom file, you could tell it to use a proxy cache as follows:
 
-    $ docker run -d -p 80:80 -p 443:443 -v /path/to/vhost.d:/etc/nginx/vhost.d:ro -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy
+    $ docker run -d -p 80:80 -p 443:443 -v /path/to/vhost.d:/etc/nginx/vhost.d:ro -v /var/run/docker.sock:/tmp/docker.sock:ro foxboxsnet/nginx-proxy-alpine-letsencrypt
     $ { echo 'proxy_cache my-cache;'; echo 'proxy_cache_valid  200 302  60m;'; echo 'proxy_cache_valid  404 1m;' } > /path/to/vhost.d/app.example.com_location
 
 If you are using multiple hostnames for a single container (e.g. `VIRTUAL_HOST=example.com,www.example.com`), the virtual host configuration file must exist for each hostname. If you would like to use the same configuration for multiple virtual host names, you can use a symlink:
@@ -327,6 +416,8 @@ Before submitting pull requests or issues, please check github to make sure an e
 To run tests, you'll need to install [bats 0.4.0](https://github.com/sstephenson/bats).
 
     make test
+
+
 
 # AUTHOR
 This is a license of software used in the Docker Container.
