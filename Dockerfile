@@ -3,7 +3,7 @@ FROM alpine:3.4
 MAINTAINER FoxBoxsnet
 
 # Environment variable
-ENV NGINX_VERSION 1.11.2
+ENV NGINX_VERSION 1.11.3
 ENV NGINX_CT_VERSION 1.3.0
 ENV HEADERS_MORE_NGINX_MODULE_VERSION 0.30
 ## nginx-proxy
@@ -49,7 +49,6 @@ ENV CONFIG="\
 		\
 		--add-dynamic-module=./nginx-ct-$NGINX_CT_VERSION \
 		--add-dynamic-module=./headers-more-nginx-module-$HEADERS_MORE_NGINX_MODULE_VERSION \
-		--add-module=./ngx_brotli-master \
 	"
 
 RUN apk update \
@@ -104,25 +103,6 @@ RUN apk update \
 		-o headers-more-nginx-module.tar.gz \
 	&& tar -zxC ./ -f headers-more-nginx-module.tar.gz \
 	&& rm headers-more-nginx-module.tar.gz \
-	\
-	# ngx_brotli Module
-	# https://github.com/bagder/libbrotli
-	# https://github.com/google/ngx_brotli
-#	&& git clone https://github.com/bagder/libbrotli libbrotli \
-#	&& cd ./libbrotli \
-#	&& ./autogen.sh \
-#	&& ./configure \
-#	&& make \
-#	&& make install \
-#	&& cd .. \
-#	&& rm -rf ./libbrotli \
-	\
-	# https://github.com/google/ngx_brotli/archive/master.tar.gz
-#	&& curl -fSL https://github.com/google/ngx_brotli/archive/master.tar.gz \
-#		-o ngx_brotli-master.tar.gz \
-#	&& tar -zxC ./ -f ngx_brotli-master.tar.gz \
-#	&& rm ngx_brotli-master.tar.gz \
-#	&& export NGX_BROTLI_STATIC_MODULE_ONLY=1 \
 	\
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./configure $CONFIG --with-debug \
