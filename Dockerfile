@@ -49,7 +49,7 @@ ENV CONFIG="\
 		\
 		--add-dynamic-module=./nginx-ct-$NGINX_CT_VERSION \
 		--add-dynamic-module=./headers-more-nginx-module-$HEADERS_MORE_NGINX_MODULE_VERSION \
-		--add-dynamic-module=./ngx_brotli_module-master \
+		--add-dynamic-module=./ngx_brotli-master \
 	"
 
 RUN apk update \
@@ -122,9 +122,9 @@ RUN apk update \
 	\
 	# https://github.com/google/ngx_brotli/archive/master.tar.gz
 	&& curl -fSL https://github.com/google/ngx_brotli/archive/master.tar.gz \
-		-o ngx_brotli_module-master.tar.gz \
-	&& tar -zxC ./ -f ngx_brotli_module-master.tar.gz \
-	&& rm ngx_brotli_module-master.tar.gz \
+		-o ngx_brotli-master.tar.gz \
+	&& tar -zxC ./ -f ngx_brotli-master.tar.gz \
+	&& rm ngx_brotli-master.tar.gz \
 	\
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./configure $CONFIG --with-debug \
