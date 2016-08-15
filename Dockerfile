@@ -108,21 +108,21 @@ RUN apk update \
 	# ngx_brotli Module
 	# https://github.com/bagder/libbrotli
 	# https://github.com/google/ngx_brotli
-	&& git clone https://github.com/bagder/libbrotli libbrotli \
-	&& cd ./libbrotli \
-	&& ./autogen.sh \
-	&& ./configure \
-	&& make \
-	&& make install \
-	&& cd .. \
-	&& rm -rf ./libbrotli \
+#	&& git clone https://github.com/bagder/libbrotli libbrotli \
+#	&& cd ./libbrotli \
+#	&& ./autogen.sh \
+#	&& ./configure \
+#	&& make \
+#	&& make install \
+#	&& cd .. \
+#	&& rm -rf ./libbrotli \
 	\
 	# https://github.com/google/ngx_brotli/archive/master.tar.gz
-	&& curl -fSL https://github.com/google/ngx_brotli/archive/master.tar.gz \
-		-o ngx_brotli-master.tar.gz \
-	&& tar -zxC ./ -f ngx_brotli-master.tar.gz \
-	&& rm ngx_brotli-master.tar.gz \
-	&& export NGX_BROTLI_STATIC_MODULE_ONLY=1 \
+#	&& curl -fSL https://github.com/google/ngx_brotli/archive/master.tar.gz \
+#		-o ngx_brotli-master.tar.gz \
+#	&& tar -zxC ./ -f ngx_brotli-master.tar.gz \
+#	&& rm ngx_brotli-master.tar.gz \
+#	&& export NGX_BROTLI_STATIC_MODULE_ONLY=1 \
 	\
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./configure $CONFIG --with-debug \
