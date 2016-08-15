@@ -57,6 +57,7 @@ RUN apk update \
 	&& adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
 	&& apk add --no-cache --virtual .build-nginx \
 		gcc \
+		c++ \
 		libc-dev \
 		make \
 		openssl-dev \
@@ -117,7 +118,8 @@ RUN apk update \
 	&& cd .. \
 	&& rm -rf ./libbrotli \
 	\
-	&& curl -fSL https://github.com/google/ngx_brotli/archive/master.tar.gz \
+	# https://github.com/google/ngx_brotli/archive/master.tar.gz
+	&& curl -fSL https://github.com/cloudflare/ngx_brotli_module/archive/master.tar.gz \
 		-o ngx_brotli.tar.gz \
 	&& tar -zxC ./ -f ngx_brotli.tar.gz \
 	&& rm ngx_brotli.tar.gz \
