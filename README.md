@@ -10,6 +10,17 @@
 ## Description
 high security of the nginx-proxy.
 
+## Current image size 08/16/2016
+Alpine Linux-based reconfiguration. Image size is 8/16/2016.
+
+| images name | Size |
+|:------------|:-----|
+| foxboxsnet/nginx-proxy-alpine-letsencrypt | 46.53 MB |
+| dmp1ce/nginx-proxy-letsencrypt | 290.9 MB |
+
+
+![](./images/docker-pull-speed.gif)
+
 ## Usage
 ---
 ### Environment
@@ -113,7 +124,6 @@ nginx:1.11.1-alpine
     image/jpeg
     image/jpg
     ```
-  
 + more_clear_headers
     + X-Powered-By
     + X-Runtime
