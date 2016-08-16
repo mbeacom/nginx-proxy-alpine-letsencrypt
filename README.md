@@ -62,21 +62,75 @@ nginx:1.11.1-alpine
 ## Configuration
 ---
 + ssl_ciphers
+    + `ECDHE+ECDSA !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS !RC4`  
+    ```shell
+    $ openssl ciphers -v 'ECDHE+ECDSA !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS !RC4'
+    ECDHE-ECDSA-AES128-SHA          SSLv3   Kx=ECDH     Au=ECDSA Enc=AES(128)    Mac=SHA1
+    ECDHE-ECDSA-AES256-SHA          SSLv3   Kx=ECDH     Au=ECDSA Enc=AES(256)    Mac=SHA1
+    ECDHE-ECDSA-AES128-SHA256       TLSv1.2 Kx=ECDH     Au=ECDSA Enc=AES(128)    Mac=SHA256
+    ECDHE-ECDSA-AES256-SHA384       TLSv1.2 Kx=ECDH     Au=ECDSA Enc=AES(256)    Mac=SHA384
+    ECDHE-ECDSA-AES128-GCM-SHA256   TLSv1.2 Kx=ECDH     Au=ECDSA Enc=AESGCM(128) Mac=AEAD  
+    ECDHE-ECDSA-AES256-GCM-SHA384   TLSv1.2 Kx=ECDH     Au=ECDSA Enc=AESGCM(256) Mac=AEAD
+    ```
+  
 + IPv6 support
 + DH:(Diffie-Hellman) parameter for DHE ciphersuites, recommended 2048 bits
 + HSTS:(HTTP Strict Transport Security)
+    + 15768000 seconds = 6 months
 + HPKP:(HTTP Public Key Pinning)
+    + Pinning
+        + $domain Server certificates
+        + Let's Encrypt Authority X3 Server certificates
+        + Backup key CSR Dir `/etc/nginx/certs/$domain/hpkp-backup.csr`  
 + CT:(Certificate Transparency)
+    + CT servers
+        + ct.googleapis.com/aviator
+        + ct.googleapis.com/pilot
+        + ct.googleapis.com/rocketeer
 + OCSP Stapling
+    + `resolver_timeout    15s`
 + gzip
-+ more_clear_headers X-Powered-By
-+ more_clear_headers X-Runtime
-+ add_header X-Frame-Options SAMEORIGIN
-+ add_header X-XSS-Protection "1; mode=block"
-+ add_header X-Content-Type-Options nosniff
-+ Case of 100 MB bandwidth limit
-+ memory limit for number of connections
-+ memory limit for number of requests
+    + `gzip_disable` Microsoft Internet Explorer 1-6 gzip Disabled
+    + `zip_min_length` Minimum 1024 byte
+    + `gzip_types`
+    ```
+    text/plain
+    text/xml
+    text/css
+    text/javascript
+    application/xhtml+xml
+    application/xml
+    application/rss+xml
+    application/atom_xml
+    application/javascript
+    application/x-javasript
+    application/x-httpd-php
+    application/json
+    image/x-icon
+    image/bmp
+    image/png
+    image/gif
+    image/jpeg
+    image/jpg
+    ```
+  
++ more_clear_headers
+    + X-Powered-By
+    + X-Runtime
++ Add headers
+    + X-Frame-Options
+        + `add_header X-Frame-Options SAMEORIGIN`
+    + X-XSS-Protection
+        + `add_header X-XSS-Protection "1; mode=block"`
+    + X-Content-Type-Options
+        + `add_header X-Content-Type-Options nosniff` 
+    + Case of 100 MB bandwidth limit
+        + `limit_rate_after 100m`  
+          `limit_rate 1m;`(8Mbps)
+    + memory limit for number of connections
+        + `limit_conn connection_limit_per_ip 500;` In have a little bigger with HTTP2
+    + memory limit for number of requests
+        + `limit_req zone=request_limit_per_ip burst=100 nodelay;` rate = 50r/s burst rate = 100r/s
 
 ## letsencrypt.sh configuration
 ---
