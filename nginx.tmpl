@@ -42,13 +42,15 @@ include /etc/nginx/proxy.conf;
 # HTTP 1.1 support
 proxy_http_version 1.1;
 proxy_buffering off;
-proxy_set_header Proxy "";
 proxy_set_header Host $http_host;
 proxy_set_header Upgrade $http_upgrade;
 proxy_set_header Connection $proxy_connection;
 proxy_set_header X-Real-IP $remote_addr;
 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+
+# Mitigate httpoxy attack (see README for details)
+proxy_set_header Proxy "";
 {{ end }}
 
 server {
@@ -128,7 +130,7 @@ server {
 
 	# intermediate configuration. tweak to your needs.
 	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-	ssl_ciphers 'ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:ECDHE-ECDSA-DES-CBC3-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA:!DSS';
+	ssl_ciphers 'ECDHE+ECDSA !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS !RC4';
 	ssl_prefer_server_ciphers on;
 	ssl_session_timeout 5m;
 	ssl_session_cache shared:SSL:50m;
@@ -138,20 +140,20 @@ server {
 	ssl_certificate_key /etc/nginx/certs/{{ (printf "%s.key" $cert) }};
 
 
-	# Diffie-Hellman parameter for DHE ciphersuites, recommended 2048 bits
+	# DH:(Diffie-Hellman) parameter for DHE ciphersuites, recommended 2048 bits
 	{{ if (exists (printf "/etc/nginx/certs/%s.dhparam.pem" $cert)) }}
 	ssl_dhparam {{ printf "/etc/nginx/certs/%s.dhparam.pem" $cert }};
 	{{ end }}
 
-	# HSTS (ngx_http_headers_module is required) (15768000 seconds = 6 months)
+	# HSTS:(HTTP Strict Transport Security) (15768000 seconds = 6 months)
 	add_header Strict-Transport-Security "max-age=15768000";
 
-	# HTTP Public Key Pinning
+	# HPKP:(HTTP Public Key Pinning)
 	{{ if (exists (printf "/etc/nginx/vhost.d/%s-HPKP.conf" $host)) }}
 	include {{ printf "/etc/nginx/vhost.d/%s-HPKP.conf" $host }};
 	{{ end }}
 
-	# Certificate Transparency
+	# CT:(Certificate Transparency)
 	{{ if (exists (printf "/etc/nginx/certs/%s/scts" $host)) }}
 	ssl_ct on;
 	ssl_ct_static_scts {{ printf "/etc/nginx/certs/%s/scts" $host }};

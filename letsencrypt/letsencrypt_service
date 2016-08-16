@@ -25,25 +25,41 @@ update_certs() {
 
     # Create directorty for the first domain
     mkdir -p /etc/nginx/certs/$base_domain
+    mkdir -p /etc/nginx/vhost.d/
     mkdir -p /usr/share/nginx/html/.well-known/acme-challenge
     cd /etc/nginx/certs/
 
     if [ "$STAGING" = "yes" ];then
       echo "Let's Encrypt Staging : Enabled"
-      echo "CA=\"https://acme-staging.api.letsencrypt.org/directory\""	   	>  ./$base_domain/config
+      echo "CA=\"https://acme-staging.api.letsencrypt.org/directory\""		  >  ./$base_domain/config
       echo "WELLKNOWN=\"/usr/share/nginx/html/.well-known/acme-challenge\""	>> ./$base_domain/config
-      echo CONTACT_EMAIL="${!email_varname}"						                 		>> ./$base_domain/config
+      echo CONTACT_EMAIL="${!email_varname}"									              >> ./$base_domain/config
     else
       echo "Let's Encrypt Staging : Disabled"
-      echo "CA=\"https://acme-staging.api.letsencrypt.org/directory\""      >  ./$base_domain/config
-      echo "WELLKNOWN=\"/usr/share/nginx/html/.well-known/acme-challenge\""	>> ./$base_domain/config
-      echo CONTACT_EMAIL="${!email_varname}"				                        >> ./$base_domain/config
+      echo "WELLKNOWN=\"/usr/share/nginx/html/.well-known/acme-challenge\""	>  ./$base_domain/config
+      echo CONTACT_EMAIL="${!email_varname}"									              >> ./$base_domain/config
     fi
 
     for domain in "${!hosts_array}"; do
       # Add all the domains to certificate
       params_d_str+=" --domain $domain"
     done
+
+    # Nginx Status is effective when inserted
+    if [ -n "$NGX_STS_IP" ] && [ -n "$NGX_STS_NW" ];then
+      echo "# Nginx Status is effective when inserted"
+      echo "server {"                           >  /etc/nginx/vhost.d/healthcheck.conf
+      echo "  listen 80;"                       >> /etc/nginx/vhost.d/healthcheck.conf
+      echo "  server_name $NGX_STS_IP;"         >> /etc/nginx/vhost.d/healthcheck.conf
+      echo ""                                   >> /etc/nginx/vhost.d/healthcheck.conf
+      echo "  location = /healthcheck.html {"   >> /etc/nginx/vhost.d/healthcheck.conf
+      echo "    empty_gif;"                     >> /etc/nginx/vhost.d/healthcheck.conf
+      echo "    access_log off;"                >> /etc/nginx/vhost.d/healthcheck.conf
+      echo "    allow $NGX_STS_NW;"             >> /etc/nginx/vhost.d/healthcheck.conf
+      echo "    deny all;"                      >> /etc/nginx/vhost.d/healthcheck.conf
+      echo "  }"                                >> /etc/nginx/vhost.d/healthcheck.conf
+      echo "}"                                  >> /etc/nginx/vhost.d/healthcheck.conf
+    fi
 
     echo "# Creating/Renewal $base_domain certificates... (${hosts_array_expanded[*]})"
     /usr/local/bin/letsencrypt.sh \
@@ -88,7 +104,6 @@ update_certs() {
             /bin/base64`
 
             # HPKP Settings
-            mkdir -p /etc/nginx/vhost.d/
             echo add_header Public-Key-Pins "'pin-sha256=\"$HPKP_Key1\"; pin-sha256=\"$HPKP_Key2\"; pin-sha256=\"$HPKP_Key3\"; max-age=600; includeSubDomains'"";" > /etc/nginx/vhost.d/$base_domain-HPKP.conf
 
           echo "## Creating/Renewal $base_domain Certificate Transparency... (${hosts_array_expanded[*]})"
@@ -120,9 +135,9 @@ update_certs() {
         echo "Creating/Renewal $base_domain Symbolic link... (${hosts_array_expanded[*]})"
         # Symlink all alternative names to base domain certificate
         ln -sf ./$base_domain/fullchain.pem /etc/nginx/certs/$domain".crt"
-        ln -sf ./$base_domain/chain.pem		  /etc/nginx/certs/$domain".ocsp.crt"
-        ln -sf ./$base_domain/privkey.pem   /etc/nginx/certs/$domain".key"
-        ln -sf ./$base_domain/dhparam.pem	  /etc/nginx/certs/$domain".dhparam.pem"
+        ln -sf ./$base_domain/chain.pem		/etc/nginx/certs/$domain".ocsp.crt"
+        ln -sf ./$base_domain/privkey.pem       /etc/nginx/certs/$domain".key"
+        ln -sf ./$base_domain/dhparam.pem	/etc/nginx/certs/$domain".dhparam.pem"
         echo `openssl sha256 -r ./$base_domain/privkey.pem | awk '{print $1}'` > ./$base_domain/timestamp
       done
       reload_nginx='true'
