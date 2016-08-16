@@ -47,8 +47,8 @@ docker run -d \
 foxboxsnet/nginx-proxy-alpine-letsencrypt
 
 docker run -d \
--e VIRTUAL_HOST="foo.bar.com,bar.com" \
--e LETSENCRYPT_HOST="foo.bar.com,bar.com" \
+-e VIRTUAL_HOST="foo.bar.com" \
+-e LETSENCRYPT_HOST="foo.bar.com" \
 -e LETSENCRYPT_EMAIL="foo@bar.com" \
 nginx:1.11.1-alpine
 ```
@@ -338,8 +338,8 @@ For example
 
 ```
 $ docker run -d -p 80:80 \
-    -e VIRTUAL_HOST="foo.bar.com,bar.com" \
-    -e LETSENCRYPT_HOST="foo.bar.com,bar.com" \
+    -e VIRTUAL_HOST="foo.bar.com" \
+    -e LETSENCRYPT_HOST="foo.bar.com" \
     -e LETSENCRYPT_EMAIL="foo@bar.com" ...
 ```
 
