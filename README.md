@@ -19,8 +19,6 @@ Alpine Linux-based reconfiguration. Image size is 8/16/2016.
 | dmp1ce/nginx-proxy-letsencrypt | 290.9 MB |
 
 
-![](./images/docker-pull-speed.gif)
-
 ## Usage
 ---
 ### Environment
