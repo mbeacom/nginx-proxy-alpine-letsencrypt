@@ -175,7 +175,6 @@ RUN apk add --no-cache bash \
 RUN apk add --no-cache --virtual .build-ct-submit \
 		go \
 		curl \
-		binutils \
 		ca-certificates \
 	&& mkdir -p /usr/local/temp \
 	&& cd /usr/local/temp \
@@ -184,7 +183,7 @@ RUN apk add --no-cache --virtual .build-ct-submit \
 	&& tar -C /usr/local/temp -xvzf ct-submit-$CT_SUBMIT_VERSION.tar.gz \
 	&& rm ct-submit-$CT_SUBMIT_VERSION.tar.gz \
 	&& cd ./ct-submit-$CT_SUBMIT_VERSION \
-	&& go build \
+	&& go build -ldflags "-s" \
 	&& strip ct-submit-$CT_SUBMIT_VERSION \
 	&& mv ct-submit-$CT_SUBMIT_VERSION /usr/local/bin/ct-submit \
 	&& rm -rf /usr/local/temp \
