@@ -184,7 +184,6 @@ RUN apk add --no-cache --virtual .build-ct-submit \
 	&& rm ct-submit-$CT_SUBMIT_VERSION.tar.gz \
 	&& cd ./ct-submit-$CT_SUBMIT_VERSION \
 	&& go build -ldflags "-s" \
-	&& strip ct-submit-$CT_SUBMIT_VERSION \
 	&& mv ct-submit-$CT_SUBMIT_VERSION /usr/local/bin/ct-submit \
 	&& rm -rf /usr/local/temp \
 	&& chmod +x /usr/local/bin/ct-submit \
