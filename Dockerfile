@@ -3,21 +3,25 @@ FROM alpine:3.4
 MAINTAINER FoxBoxsnet
 
 # Environment variable
-ENV NGINX_VERSION 1.11.3
-ENV NGINX_CT_VERSION 1.3.0
-ENV HEADERS_MORE_NGINX_MODULE_VERSION 0.30
 ## nginx-proxy
-ENV DOCKER_GEN_VERSION 0.7.3
-ENV FOREGO_VERSION v0.16.1
-ENV DOCKER_HOST unix:///tmp/docker.sock
+ENV DOCKER_HOST=unix:///tmp/docker.sock
+
+# dockerfile build argument
+## nginx
+ARG NGINX_VERSION=1.11.3
+ARG NGINX_CT_VERSION=1.3.0
+ARG HEADERS_MORE_NGINX_MODULE_VERSION=0.30
+## nginx-proxy
+ARG DOCKER_GEN_VERSION=0.7.3
+ARG FOREGO_VERSION=v0.16.1
 ## letsencrypt.sh
-ENV OPENSSL_VERSION 1.0.2h-r1
+ARG OPENSSL_VERSION=1.0.2h-r1
 ## ct-submit
-ENV CT_SUBMIT_VERSION 1.1.2
+ARG CT_SUBMIT_VERSION=1.1.2
 
 # Install nginx
-ENV GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8
-ENV CONFIG="\
+ARG NGINX_GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8
+ARG NGINX_CONFIG="\
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
@@ -38,7 +42,6 @@ ENV CONFIG="\
 		--with-http_addition_module \
 		--with-http_gunzip_module \
 		--with-http_gzip_static_module \
-		--with-http_geoip_module=dynamic \
 		--with-threads \
 		--with-stream \
 		--with-stream_ssl_module \
@@ -78,7 +81,7 @@ RUN apk update \
 	&& curl -fSL http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
 	&& curl -fSL http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
 	&& export GNUPGHOME="$(mktemp -d)" \
-	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPG_KEYS" \
+	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$NGINX_GPG_KEYS" \
 	&& gpg --batch --verify nginx.tar.gz.asc nginx.tar.gz \
 	&& rm -r "$GNUPGHOME" nginx.tar.gz.asc \
 	&& mkdir -p /usr/src \
@@ -108,8 +111,7 @@ RUN apk update \
 	&& ./configure $CONFIG --with-debug \
 	&& make \
 	&& mv objs/nginx objs/nginx-debug \
-	&& mv objs/ngx_http_geoip_module.so objs/ngx_http_geoip_module-debug.so \
-	&& ./configure $CONFIG \
+	&& ./configure $NGINX_CONFIG \
 	&& make \
 	&& make install \
 	&& rm -rf /etc/nginx/html/ \
@@ -118,10 +120,8 @@ RUN apk update \
 	&& install -m644 html/index.html /usr/share/nginx/html/ \
 	&& install -m644 html/50x.html /usr/share/nginx/html/ \
 	&& install -m755 objs/nginx-debug /usr/sbin/nginx-debug \
-	&& install -m755 objs/ngx_http_geoip_module-debug.so /usr/lib/nginx/modules/ngx_http_geoip_module-debug.so \
 	&& ln -s ../../usr/lib/nginx/modules /etc/nginx/modules \
 	&& strip /usr/sbin/nginx* \
-	&& strip /usr/lib/nginx/modules/*.so \
 	&& rm -rf /usr/src/nginx-$NGINX_VERSION \
 	\
 	# Bring in gettext so we can get `envsubst`, then throw
