@@ -24,7 +24,7 @@ Alpine Linux-based reconfiguration. Image size is 8/16/2016.
 ### Environment
 + `NGX_STS_IP` nginx status for `server_name` IP address  
 Example : `-e NGX_STS_IP='192.168.25.254'`
-  
+
 + `NGX_STS_NW` nginx status `allow` permission network   
 Example : `-e NGX_STS_NW='192.168.25.0/24'`
 ```conf
@@ -43,7 +43,7 @@ server {
 ```
 + `STAGING` Let's Encrypt Staging mode  
 Example : `-e STAGING='yes'`
-  
+
 ## Run
 ```shell
 docker run -d \
@@ -81,8 +81,9 @@ nginx:1.11.1-alpine
     ECDHE-ECDSA-AES128-GCM-SHA256   TLSv1.2 Kx=ECDH     Au=ECDSA Enc=AESGCM(128) Mac=AEAD  
     ECDHE-ECDSA-AES256-GCM-SHA384   TLSv1.2 Kx=ECDH     Au=ECDSA Enc=AESGCM(256) Mac=AEAD
     ```
-  
+
 + IPv6 support
++ SPDY and HTTP/2 simultaneous support
 + DH:(Diffie-Hellman) parameter for DHE ciphersuites, recommended 2048 bits
 + HSTS:(HTTP Strict Transport Security)
     + 15768000 seconds = 6 months
@@ -131,7 +132,7 @@ nginx:1.11.1-alpine
     + X-XSS-Protection
         + `add_header X-XSS-Protection "1; mode=block"`
     + X-Content-Type-Options
-        + `add_header X-Content-Type-Options nosniff` 
+        + `add_header X-Content-Type-Options nosniff`
     + Case of 100 MB bandwidth limit
         + `limit_rate_after 100m`  
           `limit_rate 1m;`(8Mbps)
@@ -484,7 +485,7 @@ To run tests, you'll need to install [bats 0.4.0](https://github.com/sstephenson
 # AUTHOR
 This is a license of software used in the Docker Container.
 
-## [jwilder/nginx-proxy](https://github.com/jwilder/nginx-proxy) 
+## [jwilder/nginx-proxy](https://github.com/jwilder/nginx-proxy)
 ```
 The MIT License (MIT)
 
@@ -586,3 +587,33 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## [felixbuenemann/nginx_1_9_15_http2_spdy.patch](https://github.com/felixbuenemann/sslconfig/blob/updated-nginx-1.9.15-spdy-patch/patches/nginx_1_9_15_http2_spdy.patch)
+
+Copyright (c) 2014, CloudFlare
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the {organization} nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

@@ -47,6 +47,7 @@ ARG NGINX_CONFIG="\
 		--with-stream_ssl_module \
 		--with-http_slice_module \
 		--with-file-aio \
+		--with-http_spdy_module \
 		--with-http_v2_module \
 		--with-ipv6 \
 		\
@@ -87,7 +88,10 @@ RUN apk update \
 	&& mkdir -p /usr/src \
 	&& tar -zxC /usr/src -f nginx.tar.gz \
 	&& rm nginx.tar.gz \
+	&& curl -fSL https://raw.githubusercontent.com/felixbuenemann/sslconfig/updated-nginx-1.9.15-spdy-patch/patches/nginx_1_9_15_http2_spdy.patch -o http2_spdy.patch \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
+	&& patch -p1 < ../http2_spdy.patch.patch \
+	&& rm ../http2_spdy.patch.patch \
 	\
 	# healthcheck Settings
 	&& mkdir -p /etc/nginx/vhost.d \
